@@ -28,7 +28,7 @@ def addable():
     animes = []
     for chance in os.listdir(ANIME_DIR):
         if os.path.isdir(os.path.join(ANIME_DIR, chance)):
-            if METADATA_FILENAME not in os.listdir(os.path.join(ANIME_DIR, chance)):
+            if METADATA_FILENAME not in os.listdir(os.path.join(ANIME_DIR, chance)) and VIDEO_FILENAME in os.listdir(os.path.join(ANIME_DIR, chance)):
                 animes.append(chance)
     return sorted(animes)
 
@@ -50,7 +50,7 @@ def unseen():
 def watch(id):
     if os.path.isdir(os.path.join(ANIME_DIR, id)):
         if os.path.isfile(os.path.join(ANIME_DIR, id, VIDEO_FILENAME)):
-            if subprocess.call(['omxplayer', '-o', 'both', os.path.join(ANIME_DIR, id, VIDEO_FILENAME)]):
+            if subprocess.call(['omxplayer', '-o', 'both', os.path.join(ANIME_DIR, id, VIDEO_FILENAME)]) == 0:
                 scrobble(id)
                 return True
     return False
@@ -60,7 +60,7 @@ def describe(d):
         print("%s - %s %s" % (e, d[e]['series'], d[e]['episode']))
 
 if __name__ == '__main__':
-    cmds = sorted(['watchable()', 'addable()', 'write_tag(id[, series][, episode])', 'unseen()', 'scrobble(id)', 'watch(id)'])
+    cmds = sorted(['watchable()', 'addable()', 'write_tag(id[, series][, episode])', 'unseen()', 'scrobble(id)', 'watch(id)', 'describe(dict)'])
     import code
     code.InteractiveConsole(locals=globals()).interact(cmds)
 #    while True:
