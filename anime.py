@@ -24,6 +24,11 @@ def write_tag(id, series=None, episode=None):
                 file.write(json.dumps({'series': series or raw_input("Series: "), 'episode': episode or raw_input("Episode: ")}))
     return True
 
+def write_loop():
+    for i in addable():
+        print(i)
+        write_tag(i)
+
 def addable():
     animes = []
     for chance in os.listdir(ANIME_DIR):
@@ -47,6 +52,14 @@ def unseen():
             animes[chance] = chances[chance]
     return animes
 
+def seen():
+    animes = {}
+    chances = watchable()
+    for chance in chances:
+        if os.path.exists(os.path.join(ANIME_DIR, chance, SEEN_TAG_FILENAME)):
+            animes[chance] = chances[chance]
+    return animes
+
 def watch(id):
     if os.path.isdir(os.path.join(ANIME_DIR, id)):
         if os.path.isfile(os.path.join(ANIME_DIR, id, VIDEO_FILENAME)):
@@ -60,7 +73,7 @@ def describe(d):
         print("%s - %s %s" % (e, d[e]['series'], d[e]['episode']))
 
 if __name__ == '__main__':
-    cmds = sorted(['watchable()', 'addable()', 'write_tag(id[, series][, episode])', 'unseen()', 'scrobble(id)', 'watch(id)', 'describe(dict)'])
+    cmds = sorted(['watchable()', 'addable()', 'write_tag(id[, series][, episode])', 'write_loop()', 'unseen()', 'seen()', 'scrobble(id)', 'watch(id)', 'describe(dict)'])
     import code
     code.InteractiveConsole(locals=globals()).interact(cmds)
 #    while True:
