@@ -1,0 +1,15 @@
+{% extends 'core.html' %}
+{% block title %}Watchable{% endblock title %}
+{% block body %}
+    <div class="container">
+      <div class="jumbotron">
+        <h1>Watchable</h1>
+        <h5><a href="{{ url_for("kill") }}">kill all omxplayer</a></h5>
+        <ul>
+          {% for name in anime %}
+          <li><ul class="list-inline"><li><strong>{{ anime[name]['series'] }} e{{ anime[name]['episode'] }}</li><li><a href="/anime/{{ name }}/videoplayback">file</a></li><li><a href="{{ url_for("watch", anime=name) }}">watch on Pi</a></li></ul></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+{% endblock body %}
