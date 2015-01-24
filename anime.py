@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-import json, os, subprocess
+import json, os, shutil, subprocess
 from pprint import pprint
 
 ANIME_DIR = '/anime'
 METADATA_FILENAME = 'metadata.json'
 VIDEO_FILENAME = 'videoplayback'
 SEEN_TAG_FILENAME = 'scrobble'
+KEEPALIVE_FILENAME = 'keepalive'
 REQUIRED_FILENAMES = [METADATA_FILENAME, VIDEO_FILENAME]
 
 def watchable():
@@ -72,9 +73,23 @@ def describe(d):
     for e in sorted(d):
         print("%s - %s %s" % (e, d[e]['series'], d[e]['episode']))
 
-if __name__ == '__main__':
-    cmds = sorted(['watchable()', 'addable()', 'write_tag(id[, series][, episode])', 'write_loop()', 'unseen()', 'seen()', 'scrobble(id)', 'watch(id)', 'describe(dict)'])
-    import code
-    code.InteractiveConsole(locals=globals()).interact(cmds)
+def remove(id, force=False):
+    if force or os.path.isdir(os.path.join(ANIME_DIR, id)):
+        if not os.path.isfile(os.path.join(ANIME_DIR, id, KEEPALIVE_FILENAME)) or raw_input("Retype the id to remove: %s : " % id) == id:
+            shutil.rmtree(os.path.join(ANIME_DIR, id))
+            return True
+    print "not deleted"
+    return False
+
+def remove_loop():
+    items = seen()
+    for i in items:
+        if (not os.path.isfile(os.path.join(ANIME_DIR, i, KEEPALIVE_FILENAME))) and raw_input("Remove %s %s [%s]? [y/N]" % (items[i]["series"], items[i]["episode"], os.path.join(ANIME_DIR, i))).strip().lower() == "y":
+            remove(i)
+
+#if __name__ == '__main__':
+#    cmds = sorted(['watchable()', 'addable()', 'write_tag(id[, series][, episode])', 'write_loop()', 'unseen()', 'seen()', 'scrobble(id)', 'watch(id)', 'describe(dict)', 'remove(id[, force=False])', 'remove_loop()'])
+#    import code
+#    code.InteractiveConsole(locals=globals()).interact(cmds)
 #    while True:
 #        michiprint(input(" > "))
