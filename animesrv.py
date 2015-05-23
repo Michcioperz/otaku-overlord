@@ -1,27 +1,48 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, jsonify, g, json
 import anime as animelib
-import subprocess, os
+import subprocess, os, shutil
 app = Flask(__name__)
 prefix = '/otaku'
 
-@app.route(prefix+'/addable')
-def addable():
-    return render_template('addable.html', anime=animelib.addable())
+def desc(series):
+    try:
+        with open(os.path.join("/datanime",series,"desc.txt")) as f:
+            return f.read()
+    except:
+        return ""
+
+def series():
+    return os.listdir("/datanime")
+
+@app.route(prefix+'/shirley')
+def shirley_api():
+    return jsonify(videos=animelib.shirley(), series=series())
 
 @app.route(prefix+'/')
 def watchable():
-    return render_template('watchable.html', anime=animelib.watchable(), addable=len(animelib.addable()))
+    return render_template('watchable.html', animes=animelib.watchable(), sorted=sorted, addable=len(animelib.addable()), series=series())
 
 @app.route(prefix+'/edit/<anime>')
 def edit(anime):
     return render_template("write_form.html", codename=anime)
 
+@app.route(prefix+'/scrobble/<anime>')
+def scrobble(anime):
+    animelib.scrobble(anime)
+    return redirect(url_for('watchable'))
+
 @app.route(prefix+'/write/<anime>/<title>/<episode>')
 def write(anime, title, episode):
     animelib.write_tag(anime, title, episode)
     return redirect(url_for('watchable'))
+
+@app.route(prefix+'/remove/<anime>')
+def remove(anime):
+    if anime in animelib.seen() and not os.path.isfile(os.path.join(animelib.ANIME_DIR, anime, animelib.KEEPALIVE_FILENAME)):
+        shutil.rmtree(os.path.join(animelib.ANIME_DIR, anime))
+    return redirect(url_for("watchable"))
 
 @app.route(prefix+'/watch/<anime>')
 def watch(anime):

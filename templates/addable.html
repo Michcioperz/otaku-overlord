@@ -5,7 +5,7 @@
       <div class="jumbotron">
         <h1>Addable</h1>
         <ul>
-          {% for name in anime %}
+          {% for name in sorted(anime) %}
           <li><a href="{{ url_for('edit', anime=name) }}">{{ name }}</a></li>
           {% endfor %}
         </ul>
