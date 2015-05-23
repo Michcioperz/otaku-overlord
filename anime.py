@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import json, os, shutil, subprocess
-from pprint import pprint
 
 ANIME_DIR = '/anime'
 METADATA_FILENAME = 'metadata.json'
@@ -25,8 +24,8 @@ def watchable():
         if os.path.isdir(os.path.join(ANIME_DIR, chance)):
             if set(os.listdir(os.path.join(ANIME_DIR, chance))).issuperset(REQUIRED_FILENAMES):
                 if METADATA_FILENAME in os.listdir(os.path.join(ANIME_DIR, chance)):
-                    with open(os.path.join(ANIME_DIR, chance, METADATA_FILENAME)) as file:
-                        animes[chance] = AnimeMetadata.from_dict(json.load(file))
+                    with open(os.path.join(ANIME_DIR, chance, METADATA_FILENAME)) as f:
+                        animes[chance] = AnimeMetadata.from_dict(json.load(f))
                 else:
                     animes[chance] = AnimeMetadata()
                 if SEEN_TAG_FILENAME in os.listdir(os.path.join(ANIME_DIR, chance)):
@@ -47,13 +46,13 @@ def shirley():
                 videos.append(chance)
     return sorted(videos)
 
-def write_tag(id, series=None, episode=None):
-    if os.path.isdir(os.path.join(ANIME_DIR, id)):
-        if METADATA_FILENAME not in os.listdir(os.path.join(ANIME_DIR, id)):
-            with open(os.path.join(ANIME_DIR, id, METADATA_FILENAME), 'w') as file:
-                file.write(json.dumps({'series': series or raw_input("Series: "), 'episode': episode or raw_input("Episode: ")}))
-                if not os.path.exists(os.path.join(ANIME_DIR, id, VIDEO_FILENAME+".avi")):
-                    os.symlink(os.path.join(ANIME_DIR, id, VIDEO_FILENAME), os.path.join(ANIME_DIR, id, VIDEO_FILENAME+".avi"))
+def write_tag(ident, series=None, episode=None):
+    if os.path.isdir(os.path.join(ANIME_DIR, ident)):
+        if METADATA_FILENAME not in os.listdir(os.path.join(ANIME_DIR, ident)):
+            with open(os.path.join(ANIME_DIR, ident, METADATA_FILENAME), 'w') as f:
+                f.write(json.dumps({'series': series or raw_input("Series: "), 'episode': episode or raw_input("Episode: ")}))
+                if not os.path.exists(os.path.join(ANIME_DIR, ident, VIDEO_FILENAME+".avi")):
+                    os.symlink(os.path.join(ANIME_DIR, ident, VIDEO_FILENAME), os.path.join(ANIME_DIR, ident, VIDEO_FILENAME+".avi"))
     return True
 
 def write_loop():
@@ -75,10 +74,10 @@ def addable():
                 animes.append(chance)
     return sorted(animes)
 
-def scrobble(id):
-    if os.path.isdir(os.path.join(ANIME_DIR, id)):
-        if not os.path.exists(os.path.join(ANIME_DIR, id, SEEN_TAG_FILENAME)):
-            open(os.path.join(ANIME_DIR, id, SEEN_TAG_FILENAME), 'a').close()
+def scrobble(ident):
+    if os.path.isdir(os.path.join(ANIME_DIR, ident)):
+        if not os.path.exists(os.path.join(ANIME_DIR, ident, SEEN_TAG_FILENAME)):
+            open(os.path.join(ANIME_DIR, ident, SEEN_TAG_FILENAME), 'a').close()
             return True
     return False
 
@@ -98,11 +97,11 @@ def seen():
             animes[chance] = chances[chance]
     return animes
 
-def watch(id):
-    if os.path.isdir(os.path.join(ANIME_DIR, id)):
-        if os.path.isfile(os.path.join(ANIME_DIR, id, VIDEO_FILENAME)):
-            if subprocess.call(['omxplayer', '-o', 'both', '--layer', '11', os.path.join(ANIME_DIR, id, VIDEO_FILENAME)]) == 0:
-                scrobble(id)
+def watch(ident):
+    if os.path.isdir(os.path.join(ANIME_DIR, ident)):
+        if os.path.isfile(os.path.join(ANIME_DIR, ident, VIDEO_FILENAME)):
+            if subprocess.call(['omxplayer', '-o', 'both', '--layer', '11', os.path.join(ANIME_DIR, ident, VIDEO_FILENAME)]) == 0:
+                scrobble(ident)
                 return True
     return False
 
@@ -110,10 +109,10 @@ def describe(d):
     for e in sorted(d):
         print("%s - %s %s" % (e, d[e]['series'], d[e]['episode']))
 
-def remove(id, force=False):
-    if force or os.path.isdir(os.path.join(ANIME_DIR, id)):
-        if not os.path.isfile(os.path.join(ANIME_DIR, id, KEEPALIVE_FILENAME)) or raw_input("Retype the id to remove: %s : " % id) == id:
-            shutil.rmtree(os.path.join(ANIME_DIR, id))
+def remove(ident, force=False):
+    if force or os.path.isdir(os.path.join(ANIME_DIR, ident)):
+        if not os.path.isfile(os.path.join(ANIME_DIR, ident, KEEPALIVE_FILENAME)) or raw_input("Retype the id to remove: %s : " % ident) == ident:
+            shutil.rmtree(os.path.join(ANIME_DIR, ident))
             return True
     print "not deleted"
     return False
