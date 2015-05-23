@@ -50,11 +50,9 @@
         {% for serie in series %}
         $('blockquote[data-anime="{{ serie|safe }}"]').load("/datanime/{{ serie|urlencode }}/desc.txt");
         {% endfor %}
-        {% with messages = get_flashed_messages() %}{% if messages %}
-        {% for message in messages %}
-        Materialize.toast("%s", 4000);
+        {% for message in get_flashed_messages() %}
+        Materialize.toast("{{ message }}", 4000);
         {% endfor %}
-        {% endif %}{% endwith %}
       });
     </script>
 {% endblock body %}

@@ -4,6 +4,7 @@ from flask import Flask, render_template, redirect, url_for, jsonify, flash
 import anime as animelib
 import subprocess, os, shutil
 app = Flask(__name__)
+app.secret_key = "mou-oshimai-da"
 prefix = '/otaku'
 
 def desc(series):
