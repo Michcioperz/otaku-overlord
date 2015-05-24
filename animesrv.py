@@ -21,6 +21,13 @@ def series():
 def shirley_api():
     return jsonify(videos=animelib.shirley(), series=series())
 
+@app.route(prefix+'/api/series/<serie>/find')
+def api_series_find(serie):
+    serlist = []
+    a = animelib.watchable()
+    [serlist.append(i) if a[i].series == serie else None for i in a]
+    return jsonify(videos=serlist)
+
 @app.route(prefix+'/')
 def watchable():
     return render_template('watchable.html', animes=animelib.watchable(), sorted=sorted, addable=len(animelib.addable()), series=series())
