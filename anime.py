@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-import json, os, shutil, subprocess
+#!/usr/bin/env python3
+import json, os, shutil, subprocess, re
 
 ANIME_DIR = '/anime'
 METADATA_FILENAME = 'metadata.json'
@@ -8,15 +8,28 @@ SEEN_TAG_FILENAME = 'scrobble'
 KEEPALIVE_FILENAME = 'keepalive'
 REQUIRED_FILENAMES = [VIDEO_FILENAME]
 
+def guess_stuff(ident):
+    with open("/datanime/assignments.json") as f:
+        assignments = json.load(f)
+    match = re.match(r'(?P<name>[a-zA-Z]+)(?P<epi>\d+)', ident)
+    if match:
+        return assignments.get(match.group("name"),match.group("name")), assignments.get(match.group("epi"),match.group("epi"))
+    return ident, ""
+
 class AnimeMetadata(object):
-    def __init__(self, series="", episode=""):
-        self.series = series
-        self.episode = episode
+    def __init__(self, ident, series="", episode=""):
+        self.ident = ident
+        if not (series and episode):
+            self.guess = guess_stuff(ident)
+        self.series = series or self.guess[0]
+        self.episode = episode or self.guess[1]
     def __repr__(self):
-        return "AnimeMetadata(%s, %s)" % (self.series, self.episode)
+        return "AnimeMetadata(%s, %s, %s)" % (self.ident, self.series, self.episode)
+    def __str__(self):
+        return (("%s %s" % (self.series, self.episode)) if (self.series and self.episode) else self.ident)
     @classmethod
-    def from_dict(cls, data):
-        return cls(series=data['series'], episode=data['episode'])
+    def from_dict(cls, ident, data):
+        return cls(ident=ident, series=data['series'], episode=data['episode'])
 
 def watchable():
     animes = {}
@@ -25,9 +38,9 @@ def watchable():
             if set(os.listdir(os.path.join(ANIME_DIR, chance))).issuperset(REQUIRED_FILENAMES):
                 if METADATA_FILENAME in os.listdir(os.path.join(ANIME_DIR, chance)):
                     with open(os.path.join(ANIME_DIR, chance, METADATA_FILENAME)) as f:
-                        animes[chance] = AnimeMetadata.from_dict(json.load(f))
+                        animes[chance] = AnimeMetadata.from_dict(chance, json.load(f))
                 else:
-                    animes[chance] = AnimeMetadata()
+                    animes[chance] = AnimeMetadata(chance)
                 if SEEN_TAG_FILENAME in os.listdir(os.path.join(ANIME_DIR, chance)):
                     animes[chance].seen = True
                 else:
@@ -50,7 +63,7 @@ def write_tag(ident, series=None, episode=None):
     if os.path.isdir(os.path.join(ANIME_DIR, ident)):
         if METADATA_FILENAME not in os.listdir(os.path.join(ANIME_DIR, ident)):
             with open(os.path.join(ANIME_DIR, ident, METADATA_FILENAME), 'w') as f:
-                f.write(json.dumps({'series': series or raw_input("Series: "), 'episode': episode or raw_input("Episode: ")}))
+                f.write(json.dumps({'series': series or input("Series: "), 'episode': episode or input("Episode: ")}))
                 if not os.path.exists(os.path.join(ANIME_DIR, ident, VIDEO_FILENAME+".avi")):
                     os.symlink(os.path.join(ANIME_DIR, ident, VIDEO_FILENAME), os.path.join(ANIME_DIR, ident, VIDEO_FILENAME+".avi"))
     return True
@@ -107,20 +120,20 @@ def watch(ident):
 
 def describe(d):
     for e in sorted(d):
-        print("%s - %s %s" % (e, d[e]['series'], d[e]['episode']))
+        print(("%s - %s %s" % (e, d[e]['series'], d[e]['episode'])))
 
 def remove(ident, force=False):
     if force or os.path.isdir(os.path.join(ANIME_DIR, ident)):
-        if not os.path.isfile(os.path.join(ANIME_DIR, ident, KEEPALIVE_FILENAME)) or raw_input("Retype the id to remove: %s : " % ident) == ident:
+        if not os.path.isfile(os.path.join(ANIME_DIR, ident, KEEPALIVE_FILENAME)) or input("Retype the id to remove: %s : " % ident) == ident:
             shutil.rmtree(os.path.join(ANIME_DIR, ident))
             return True
-    print "not deleted"
+    print("not deleted")
     return False
 
 def remove_loop():
     items = seen()
     for i in sorted(items):
-        if (not os.path.isfile(os.path.join(ANIME_DIR, i, KEEPALIVE_FILENAME))) and raw_input("Remove %s %s [%s]? [y/N]" % (items[i].series, items[i].episode, os.path.join(ANIME_DIR, i))).strip().lower() == "y":
+        if (not os.path.isfile(os.path.join(ANIME_DIR, i, KEEPALIVE_FILENAME))) and input("Remove %s %s [%s]? [y/N]" % (items[i].series, items[i].episode, os.path.join(ANIME_DIR, i))).strip().lower() == "y":
             remove(i)
 
 #if __name__ == '__main__':

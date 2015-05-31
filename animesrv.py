@@ -30,7 +30,7 @@ def api_series_find(serie):
 
 @app.route(prefix+'/')
 def watchable():
-    return render_template('watchable.html', animes=animelib.watchable(), sorted=sorted, addable=len(animelib.addable()), series=series())
+    return render_template('watchable.html', animes=animelib.watchable(), sorted=sorted, addable=animelib.addable(), series=series())
 
 @app.route(prefix+'/edit/<anime>')
 def edit(anime):
@@ -39,36 +39,31 @@ def edit(anime):
 @app.route(prefix+'/scrobble/<anime>')
 def scrobble(anime):
     animelib.scrobble(anime)
-    flash("%s marked as seen" % anime)
-    return redirect(url_for('watchable'))
+    return "%s marked as seen" % anime
 
 @app.route(prefix+'/write/<anime>/<title>/<episode>')
 def write(anime, title, episode):
     animelib.write_tag(anime, title, episode)
-    flash("%s tagged!" % anime)
-    return redirect(url_for('watchable'))
+    return "%s tagged!" % anime
 
 @app.route(prefix+'/remove/<anime>')
 def remove(anime):
     if anime in animelib.seen() and not os.path.isfile(os.path.join(animelib.ANIME_DIR, anime, animelib.KEEPALIVE_FILENAME)):
         shutil.rmtree(os.path.join(animelib.ANIME_DIR, anime))
-        flash("%s removed!" % anime)
+        return "%s removed!" % anime
     else:
-        flash("%s wasn't watched yet or was marked as worth rewatching." % anime)
-    return redirect(url_for("watchable"))
+        return "%s wasn't watched yet or was marked as worth rewatching." % anime
 
 @app.route(prefix+'/watch/<anime>')
 def watch(anime):
     kill()
     subprocess.Popen(['omxplayer', '-o', 'both', os.path.join(animelib.ANIME_DIR, anime, 'videoplayback')])
-    flash("%s launched on Michinom Pi!")
-    return redirect(url_for('watchable'))
+    return "%s launched on Michinom Pi!"
 
 @app.route(prefix+'/kill')
 def kill():
     subprocess.call(['killall','omxplayer.bin'])
-    flash("Omxplayer instances killed")
-    return redirect(url_for('watchable'))
+    return "Omxplayer instances killed"
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8766)

@@ -6,11 +6,9 @@
         <a href="#" class="brand-logo center">OtakuOverlord</a>
         <ul class="right hide-on-med-and-down">
           <li><a href="{{ url_for("kill") }}">stop omxplayer</a></li>
-          <li><a>{{ addable }} new</a></li>
         </ul>
         <ul id="slide-out" class="side-nav">
           <li><a href="{{ url_for("kill") }}">stop omxplayer</a></li>
-          <li><a>{{ addable }} new</a></li>
         </ul>
         <a href="#" data-activates="slide-out" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
         <script>$(".button-collapse").sideNav();</script>
@@ -20,7 +18,7 @@
         <div class="row">
           {% for name in sorted(animes) %}
           <div class="col s6 m4 l2">
-            <div class="card {{ colorize.current }} {% if animes[name].seen %}darken-4{% else %}lighten-2{% endif %}" style="max-height:300px">
+            <div id="{{ name }}" class="card {{ colorize.current }} {% if animes[name].seen %}darken-4{% else %}lighten-2{% endif %}">
               <div class="card-image waves-effect">
                 <img class="activator" src="/datanime/{{ animes[name]['series'] }}/cover.jpg">
                 <span class="card-title flow-text activator">
@@ -34,10 +32,10 @@
               <div class="card-reveal {{ colorize.next() }}">
                 <span class="card-title">{{ animes[name]['series'] }} {{ animes[name]["episode"] }}</span>
                 <hr>
-                <a class="btn waves-effect" href="/anime/{{ name }}/videoplayback" title="Get file"><i class="mdi-file-cloud"></i></a><br>
-                <a class="btn waves-effect" href="{{ url_for("watch", anime=name) }}" title="Launch on Pi"><i class="mdi-hardware-cast"></i></a><br>
-                <a class="btn waves-effect{% if animes[name].seen %} disabled{% else %}" href="{{ url_for("scrobble", anime=name) }}{% endif %}" title="Mark as seen"><i class="mdi-toggle-check-box"></i></a>
-                <a class="btn waves-effect{% if animes[name].keep or not animes[name].seen %} disabled{% else %}" href="{{ url_for("remove", anime=name) }}{% endif %}" title="Remove from server"><i class="mdi-content-remove-circle"></i></a>
+                <a class="btn-floating waves-effect" href="/anime/{{ name }}/videoplayback" title="Get file"><i class="mdi-file-cloud"></i></a>
+                <a class="btn-floating waves-effect" data-href="{{ url_for("watch", anime=name) }}" title="Launch on Pi"><i class="mdi-hardware-cast"></i></a>
+                <a class="btn-floating ajaxer scrobbler waves-effect{% if animes[name].seen %} disabled{% else %}" data-href="{{ url_for("scrobble", anime=name) }}{% endif %}" title="Mark as seen"><i class="mdi-toggle-check-box"></i></a>
+                <a class="btn-floating ajaxer remover waves-effect{% if animes[name].keep %} disabled{% else %}" data-href="{{ url_for("remove", anime=name) }}{% endif %}" title="Remove from server"><i class="mdi-content-remove-circle"></i></a>
                 <blockquote data-anime="{{ animes[name].series }}"></blockquote>
               </div>
             </div>
@@ -53,6 +51,11 @@
         {% for message in get_flashed_messages() %}
         Materialize.toast("{{ message }}", 4000);
         {% endfor %}
+      });
+      $(".card-reveal a.btn-floating.ajaxer").not(".disabled").click(function() {
+        $.get($(this).attr("data-href"), function(data) {Materialize.toast(data, 1000);});
+        if ($(this).hasClass("scrobbler")) { $(this).addClass("disabled"); }
+        if ($(this).hasClass("remover")) { $(this).parents(".col").fadeOut("slow");}
       });
     </script>
 {% endblock body %}
